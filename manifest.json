@@ -1,0 +1,19 @@
+{
+  "version": "1.1.1",
+  "changelogUrl": "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/CHANGELOG.md",
+  "resources": [
+    {
+      "scriptName": "Colorful-Poems",
+      "sourcePath": "src/widget.js",
+      "sourceUrl": "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/src/widget.js",
+      "marker": "YOUR_CAIYUN_API_KEY",
+      "injectCaiyunToken": true
+    },
+    {
+      "scriptName": "Colorful Poems Installer",
+      "sourcePath": "Installer.js",
+      "sourceUrl": "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/Installer.js",
+      "marker": "Colorful Poems 开发安装器"
+    }
+  ]
+}
