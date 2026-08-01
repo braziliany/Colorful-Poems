@@ -68,6 +68,9 @@ config.private.js
 ## 6. 发布状态
 
 - Release Preparation Fix 已完成。
+- 重写后的 `main` 已使用强制推送同步到 GitHub；同步基线为 `0054e68`。
+- 远端与本地基线一致，远端主分支树不包含两个截图路径。
+- 远端组件源码确认仍为 `YOUR_CAIYUN_API_KEY`，且 `DEBUG = false`。
 - 等待最终真机确认和稳定版发布授权。
 - 未创建 `v1.1.1` Tag。
 - 未创建 GitHub Release。
