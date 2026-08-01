@@ -20,6 +20,7 @@
 // ==============================
 
 const locale = "zh_cn"
+const DEBUG = false
 
 // true：深蓝紫主题背景；false：图片或透明背景（缺失时使用主题背景）
 const colorMode = false
@@ -1002,7 +1003,7 @@ async function getWeather() {
       throw new Error("没有可用的经纬度，请开启定位权限或填写默认位置")
     }
 
-    log(
+    debugLog(
       `定位信息：${location.locality || "未知城市"}·${location.subLocality || "未知地区"}`
     )
 
@@ -1409,6 +1410,11 @@ function getBatteryLevel() {
   }
 
   const batteryAscii = `${Math.round(level * 100)}%`
-  log(`电池==>${batteryAscii}`)
+  debugLog(`电池==>${batteryAscii}`)
   return batteryAscii
+}
+
+function debugLog(message) {
+  if (!DEBUG) return
+  log(String(message ?? ""))
 }

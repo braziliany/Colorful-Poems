@@ -1,2 +1,8 @@
 # Local screenshots and device verification captures
 screenshots/
+
+# Private credentials and local configuration
+*.key
+*.token
+config.private.js
+.env

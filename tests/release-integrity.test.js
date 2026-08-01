@@ -6,6 +6,7 @@ const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
 const packageLock = JSON.parse(fs.readFileSync("package-lock.json", "utf8"));
 const installer = fs.readFileSync("Installer.js", "utf8");
 const widget = fs.readFileSync("src/widget.js", "utf8");
+const gitignore = fs.readFileSync(".gitignore", "utf8");
 
 assert.strictEqual(manifest.version, packageJson.version);
 assert.strictEqual(packageJson.version, packageLock.version);
@@ -21,5 +22,14 @@ for (const resource of manifest.resources) {
 
 assert(/const\s+apiKey\s*=\s*["']YOUR_CAIYUN_API_KEY["']\s*;?/.test(widget));
 assert.strictEqual((widget.match(/const\s+apiKey\s*=/g) || []).length, 1);
+assert(widget.includes("const DEBUG = false"));
+assert(!/(?:^|[^A-Za-z])log\s*\(\s*`定位信息：/.test(widget));
+assert(!/(?:^|[^A-Za-z])log\s*\(\s*`电池==>/.test(widget));
+assert(/debugLog\s*\(\s*`定位信息：/.test(widget));
+assert(/debugLog\s*\(\s*`电池==>/.test(widget));
+
+for (const rule of ["*.key", "*.token", "config.private.js", ".env"]) {
+  assert(gitignore.split(/\r?\n/).includes(rule), `${rule} must be ignored`);
+}
 
 console.log("release integrity tests passed");
