@@ -4,7 +4,7 @@
 
 /**
  * 日历 · 天气 · 诗词小组件
- * 兼容新版 Scriptable 的整理修复版
+ * v1.1.0 · Deep Blue Violet Glass Theme
  *
  * 主要修复：
  * 1. 使用 SFSymbol.named() 返回真正的 Image，移除浏览器 document / Font Awesome 代码
@@ -21,7 +21,7 @@
 
 const locale = "zh_cn"
 
-// true：纯色背景；false：图片或透明背景
+// true：深蓝紫主题背景；false：图片或透明背景（缺失时使用主题背景）
 const colorMode = false
 const bgColorStr = "#000000"
 
@@ -29,7 +29,7 @@ const bgColorStr = "#000000"
 const previewSize = "Medium"
 
 // 彩云天气 API Key
-const apiKey = "17Y4IwEB99SaXhwJ"
+const apiKey = "L8lbdhlXj0NOcasX"
 
 // 定位失败时使用的默认位置。
 // 建议填写，以免关闭定位权限后天气无法加载。
@@ -102,6 +102,11 @@ const weatherControl = {
 
 const weekTitle = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"]
 const defaultTextColor = new Color("#ffffff")
+const accentColor = new Color("#ffd166")
+const secondaryTextColor = new Color("#e9e7ff", 0.82)
+const glassPanelColor = new Color("#7566a8", 0.28)
+const highTemperatureColor = new Color("#ff5c6c")
+const lowTemperatureColor = new Color("#58a6ff")
 
 // ==============================
 // 初始化
@@ -117,6 +122,10 @@ const minute = currentDate.getMinutes()
 const filename = `${Script.name()}.jpg`
 const files = FileManager.local()
 const path = files.joinPath(files.documentsDirectory(), filename)
+const poetryTokenPath = files.joinPath(
+  files.documentsDirectory(),
+  `${Script.name()}-jinrishici-token.txt`
+)
 const widget = new ListWidget()
 
 // ==============================
@@ -137,7 +146,7 @@ const contentStack = widget.addStack()
 contentStack.layoutHorizontally()
 contentStack.centerAlignContent()
 
-widget.backgroundColor = new Color(bgColorStr)
+applyThemeBackground(widget)
 
 // ---------- 左侧 ----------
 const leftStack = contentStack.addStack()
@@ -154,7 +163,7 @@ addStyleText(
   dateStr,
   1,
   Font.systemFont(16),
-  new Color("#ffcc99"),
+  accentColor,
   0,
   0.85
 )
@@ -212,7 +221,7 @@ addStyleText(
   0.7
 )
 
-const schedulePoetryColor = new Color("#ffffff", 0.7)
+const schedulePoetryColor = secondaryTextColor
 
 if (showSchedules.length > 0) {
   addStyleText(
@@ -221,7 +230,7 @@ if (showSchedules.length > 0) {
     "----------------------------------",
     1,
     Font.systemFont(10),
-    schedulePoetryColor
+    new Color("#ffd166", 0.65)
   )
 
   let scheduleIndex = 0
@@ -236,7 +245,7 @@ if (showSchedules.length > 0) {
       getSFIco("megaphone.fill"),
       12,
       12,
-      schedulePoetryColor
+      accentColor
     )
     scheduleStack.addSpacer(4)
     addStyleText(
@@ -266,7 +275,7 @@ if (showSchedules.length > 0) {
   leftStack.addSpacer(4)
 
   const poetryStack = leftStack.addStack()
-  poetryStack.backgroundColor = new Color("#666666", 0.5)
+  poetryStack.backgroundColor = glassPanelColor
   poetryStack.cornerRadius = 4
   poetryStack.layoutVertically()
   poetryStack.addSpacer(2)
@@ -322,7 +331,7 @@ addStyleImg(
   getSFIco(weatherInfo.weatherIco),
   32,
   32,
-  defaultTextColor
+  accentColor
 )
 
 weatherStack.addSpacer(4)
@@ -391,26 +400,26 @@ if (weatherControl.HEIGHT_LOW) {
   rightStack.addSpacer(3)
   const tempStack = alignRightStack(rightStack)
 
-  addStyleText(tempStack, 0, "↑", 1, Font.systemFont(10), new Color("#ff0000"))
+  addStyleText(tempStack, 0, "↑", 1, Font.systemFont(10), highTemperatureColor)
   addStyleText(
     tempStack,
     0,
     `${weatherInfo.maxTemperature ?? "--"}°`,
     1,
     Font.systemFont(10),
-    defaultTextColor
+    highTemperatureColor
   )
 
   tempStack.addSpacer(6)
 
-  addStyleText(tempStack, 0, "↓", 1, Font.systemFont(10), new Color("#2bae85"))
+  addStyleText(tempStack, 0, "↓", 1, Font.systemFont(10), lowTemperatureColor)
   addStyleText(
     tempStack,
     0,
     `${weatherInfo.minTemperature ?? "--"}°`,
     1,
     Font.systemFont(10),
-    defaultTextColor
+    lowTemperatureColor
   )
 }
 
@@ -428,7 +437,7 @@ if (weatherControl.SUNRISE_SUNSET) {
     getSFIco(weatherIcos.SUNRISE),
     15,
     15,
-    defaultTextColor
+    accentColor
   )
   symbolStack.addSpacer(4)
   addStyleText(
@@ -437,7 +446,7 @@ if (weatherControl.SUNRISE_SUNSET) {
     weatherInfo.sunrise || "--:--",
     1,
     Font.systemFont(10),
-    defaultTextColor
+    accentColor
   )
 
   symbolStack.addSpacer(4)
@@ -448,7 +457,7 @@ if (weatherControl.SUNRISE_SUNSET) {
     getSFIco(weatherIcos.SUNSET),
     15,
     15,
-    defaultTextColor
+    accentColor
   )
   symbolStack.addSpacer(4)
   addStyleText(
@@ -457,7 +466,7 @@ if (weatherControl.SUNRISE_SUNSET) {
     weatherInfo.sunset || "--:--",
     1,
     Font.systemFont(10),
-    defaultTextColor
+    accentColor
   )
 }
 
@@ -483,17 +492,17 @@ if (!colorMode && !config.runsInWidget && changePicBg) {
 }
 
 if (colorMode) {
-  widget.backgroundColor = new Color(bgColorStr)
+  applyThemeBackground(widget)
 } else if (files.fileExists(path)) {
   const backgroundImage = safelyReadImage(path)
   if (backgroundImage) {
     widget.backgroundImage = backgroundImage
   } else {
-    widget.backgroundColor = new Color(bgColorStr)
+    applyThemeBackground(widget)
   }
 } else {
-  // 第一次直接添加到桌面、还没有设置图片时，使用纯色兜底。
-  widget.backgroundColor = new Color(bgColorStr)
+  // 第一次直接添加到桌面、还没有设置图片时，使用主题渐变兜底。
+  applyThemeBackground(widget)
 }
 
 widget.setPadding(padding.top, padding.left, padding.bottom, padding.right)
@@ -514,6 +523,24 @@ if (!config.runsInWidget) {
 // ==============================
 // 背景相关
 // ==============================
+
+function applyThemeBackground(targetWidget) {
+  try {
+    const gradient = new LinearGradient()
+    gradient.colors = [
+      new Color("#07152f"),
+      new Color("#202057"),
+      new Color("#4b2e83")
+    ]
+    gradient.locations = [0, 0.56, 1]
+    gradient.startPoint = new Point(0, 0)
+    gradient.endPoint = new Point(1, 1)
+    targetWidget.backgroundGradient = gradient
+  } catch (error) {
+    log(`主题渐变设置失败：${error}`)
+    targetWidget.backgroundColor = new Color(bgColorStr)
+  }
+}
 
 async function configureBackground() {
   const hasBackground = files.fileExists(path)
@@ -1227,16 +1254,24 @@ function getLunarText(lunarInfo) {
 
 async function getPoetry() {
   try {
-    const request = new Request("https://v2.jinrishici.com/sentence")
-    request.method = "GET"
-    request.headers = {
-      Accept: "*/*",
-      "Content-Type": "application/json"
-    }
-    request.timeoutInterval = 15
-    const response = await request.loadJSON()
+    let token = await getPoetryToken()
+    let response = await requestPoetry(token)
 
-    if (!isPlainObject(response) || !isPlainObject(response.data)) {
+    // Token 被服务端判定无效时刷新一次，避免永久停留在兜底内容。
+    const poetryErrorCode = Number(asObject(response).errCode)
+    if (
+      asObject(response).status !== "success" &&
+      (poetryErrorCode === 2002 || poetryErrorCode === 2004)
+    ) {
+      token = await getPoetryToken(true)
+      response = await requestPoetry(token)
+    }
+
+    if (
+      !isPlainObject(response) ||
+      response.status !== "success" ||
+      !isPlainObject(response.data)
+    ) {
       throw new Error("诗词接口返回异常")
     }
 
@@ -1245,6 +1280,46 @@ async function getPoetry() {
     log(`诗词获取失败：${error}`)
     return null
   }
+}
+
+async function getPoetryToken(forceRefresh = false) {
+  if (!forceRefresh && files.fileExists(poetryTokenPath)) {
+    try {
+      const savedToken = safeText(files.readString(poetryTokenPath), "")
+      if (savedToken) return savedToken
+    } catch (error) {
+      log(`诗词 Token 读取失败：${error}`)
+    }
+  }
+
+  const request = new Request("https://v2.jinrishici.com/token")
+  request.method = "GET"
+  request.headers = { Accept: "application/json" }
+  request.timeoutInterval = 15
+  const response = await request.loadJSON()
+  const token = safeText(asObject(response).data, "")
+
+  if (asObject(response).status !== "success" || !token) {
+    throw new Error("诗词 Token 获取失败")
+  }
+
+  files.writeString(poetryTokenPath, token)
+  return token
+}
+
+async function requestPoetry(token) {
+  if (!safeText(token, "")) {
+    throw new Error("诗词 Token 无效")
+  }
+
+  const request = new Request("https://v2.jinrishici.com/sentence")
+  request.method = "GET"
+  request.headers = {
+    Accept: "application/json",
+    "X-User-Token": token
+  }
+  request.timeoutInterval = 15
+  return await request.loadJSON()
 }
 
 function normalizePoetry(poetry) {
