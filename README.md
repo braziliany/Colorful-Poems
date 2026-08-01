@@ -1,8 +1,11 @@
 # 彩云诗词桌面天气
 
+[![Release](https://img.shields.io/github/v/release/braziliany/Colorful-Poems?display_name=tag&sort=semver)](https://github.com/braziliany/Colorful-Poems/releases/tag/v1.1.1)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 运行在 iOS Scriptable 中的中号桌面小组件，主脚本为 `src/widget.js`。
 
-当前版本：`v1.1.1 Polish`
+当前稳定版本：[v1.1.1](https://github.com/braziliany/Colorful-Poems/releases/tag/v1.1.1)
 
 ## 当前功能
 
@@ -35,22 +38,24 @@
 - 低电量和充电状态继续使用红色、绿色提示。
 - 电量来源、充电判断、双栏结构和天气布局保持不变。
 
-## 使用
+## 安装
 
-将 `src/widget.js` 完整复制到 Scriptable 中运行，并将脚本顶部的 `YOUR_CAIYUN_API_KEY` 替换为自己的彩云天气 Token。首次使用天气功能时需要允许定位权限；未授权定位时可在脚本顶部填写默认经纬度。
+### Scriptable Installer（推荐）
 
-不要把真实 Token 提交到 Git 仓库或公开分享的脚本中。
-
-## 开发安装器
-
-开发和真机测试阶段可将仓库根目录的 `Installer.js` 复制到 Scriptable 后运行：
+将仓库根目录的 `Installer.js` 复制到 Scriptable 后运行：
 
 - 首次安装会用隐藏输入框要求填写彩云天气 Token。
 - Token 只会注入本机 iCloud 中的 `Colorful-Poems.js`，不会写回公开仓库。
 - 后续运行安装器更新时，会自动保留已安装脚本中的 Token。
 - 下载或写入失败会保留原有脚本。
 
-安装器仅作为开发阶段辅助工具；正式发行后无需保留或运行安装器。
+用户需要申请并配置自己的彩云天气 Token。
+
+### 手动安装
+
+将 `src/widget.js` 完整复制到 Scriptable 中运行，并将脚本顶部的 `YOUR_CAIYUN_API_KEY` 替换为自己的彩云天气 Token。首次使用天气功能时需要允许定位权限；未授权定位时可在脚本顶部填写默认经纬度。
+
+不要把真实 Token 提交到 Git 仓库或公开分享的脚本中。
 
 ## 容错说明
 
