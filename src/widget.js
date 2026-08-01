@@ -4,7 +4,7 @@
 
 /**
  * 日历 · 天气 · 诗词小组件
- * v1.1.1 · Official Warning Colors + Battery UI
+ * v1.1.1 · Official Warning Colors + Battery Hierarchy
  *
  * 主要修复：
  * 1. 使用 SFSymbol.named() 返回真正的 Image，移除浏览器 document / Font Awesome 代码
@@ -137,6 +137,12 @@ const lunarInfo = await getLunar()
 const poetry = await getPoetry()
 const showSchedules = await getSchedules()
 const showReminders = await getReminders()
+const batteryStr = getBatteryLevel()
+const batteryLevel = Number.parseInt(batteryStr, 10)
+const batteryIsCharging = getBatteryChargingState()
+const batteryColor = new Color(
+  getBatteryColor(batteryLevel, batteryIsCharging)
+)
 
 // ==============================
 // 小组件布局
@@ -193,32 +199,6 @@ addStyleText(
   weekDayColor,
   0,
   0.72
-)
-
-dateStack.addSpacer()
-const batteryStr = getBatteryLevel()
-const batteryLevel = Number.parseInt(batteryStr, 10)
-const batteryIsCharging = getBatteryChargingState()
-const batteryColor = new Color(
-  getBatteryColor(batteryLevel, batteryIsCharging)
-)
-addStyleImg(
-  dateStack,
-  0,
-  getSFIco(getBatteryIcon(batteryLevel, batteryIsCharging)),
-  20,
-  11,
-  batteryColor
-)
-addStyleText(
-  dateStack,
-  0,
-  `\u2009${batteryStr}`,
-  1,
-  Font.systemFont(14),
-  batteryColor,
-  0,
-  0.78
 )
 
 const weatherAlertInfo = weatherInfo.alertWeatherTitle
@@ -486,7 +466,29 @@ if (weatherControl.SUNRISE_SUNSET) {
 
 if (weatherControl.UPDATE_TIME) {
   rightStack.addSpacer(2)
-  const updateTimeStack = alignRightStack(rightStack)
+  const updateTimeStack = rightStack.addStack()
+  updateTimeStack.layoutHorizontally()
+  updateTimeStack.centerAlignContent()
+  addStyleImg(
+    updateTimeStack,
+    0,
+    getSFIco(getBatteryIcon(batteryLevel, batteryIsCharging)),
+    12,
+    7,
+    batteryColor
+  )
+  updateTimeStack.addSpacer(2)
+  addStyleText(
+    updateTimeStack,
+    0,
+    batteryStr,
+    1,
+    Font.systemFont(8),
+    batteryColor,
+    0,
+    0.8
+  )
+  updateTimeStack.addSpacer()
   addStyleText(
     updateTimeStack,
     0,
@@ -1386,8 +1388,8 @@ function getBatteryIcon(level, isCharging) {
 
 function getBatteryColor(level, isCharging) {
   if (isCharging) return "#30d158"
-  if (Number.isFinite(level) && level < 15) return "#ff3b30"
-  return "#ffd60a"
+  if (Number.isFinite(level) && level < 15) return "#ff453a"
+  return "#afa6cc"
 }
 
 function getBatteryChargingState() {

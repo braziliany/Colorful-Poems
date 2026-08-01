@@ -3,6 +3,6 @@
   "version": "1.1.1",
   "private": true,
   "scripts": {
-    "test": "node tests/installer.test.js && node tests/release-integrity.test.js"
+    "test": "node tests/installer.test.js && node tests/widget-battery.test.js && node tests/release-integrity.test.js"
   }
 }
