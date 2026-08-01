@@ -4,7 +4,7 @@
 
 /**
  * 日历 · 天气 · 诗词小组件
- * v1.1.0 · Deep Blue Violet Glass Theme
+ * v1.1.1 · Official Warning Colors + Battery UI
  *
  * 主要修复：
  * 1. 使用 SFSymbol.named() 返回真正的 Image，移除浏览器 document / Font Awesome 代码
@@ -195,28 +195,42 @@ addStyleText(
   0.72
 )
 
-dateStack.addSpacer(2)
-const batteryStr = `〓 ${getBatteryLevel()} 〓`
+dateStack.addSpacer()
+const batteryStr = getBatteryLevel()
+const batteryLevel = Number.parseInt(batteryStr, 10)
+const batteryIsCharging = getBatteryChargingState()
+const batteryColor = new Color(
+  getBatteryColor(batteryLevel, batteryIsCharging)
+)
+addStyleImg(
+  dateStack,
+  0,
+  getSFIco(getBatteryIcon(batteryLevel, batteryIsCharging)),
+  20,
+  11,
+  batteryColor
+)
 addStyleText(
   dateStack,
   0,
-  batteryStr,
+  `\u2009${batteryStr}`,
   1,
-  Font.systemFont(15),
-  weekDayColor,
+  Font.systemFont(14),
+  batteryColor,
   0,
   0.78
 )
 
 const weatherAlertInfo = weatherInfo.alertWeatherTitle
 const weatherDesc = weatherAlertInfo || weatherInfo.weatherDesc || "暂时无法获取天气描述"
+const warningColor = new Color(getWarningColor(weatherAlertInfo))
 addStyleText(
   leftStack,
   3,
   weatherDesc,
   1,
   Font.systemFont(12),
-  defaultTextColor,
+  warningColor,
   0,
   0.7
 )
@@ -230,7 +244,7 @@ if (showSchedules.length > 0) {
     "----------------------------------",
     1,
     Font.systemFont(10),
-    new Color("#ffd166", 0.65)
+    warningColor
   )
 
   let scheduleIndex = 0
@@ -891,6 +905,23 @@ function safelyReadImage(imagePath) {
   }
 }
 
+function getWarningColor(warningText) {
+  const text = String(warningText || "")
+  const warningColors = {
+    red: "#ff3b30",
+    orange: "#ff9500",
+    yellow: "#ffd60a",
+    blue: "#0a84ff",
+    default: "#c8c8d8"
+  }
+
+  if (text.includes("红色")) return warningColors.red
+  if (text.includes("橙色")) return warningColors.orange
+  if (text.includes("黄色")) return warningColors.yellow
+  if (text.includes("蓝色")) return warningColors.blue
+  return warningColors.default
+}
+
 function alignRightStack(alignmentStack) {
   const returnStack = alignmentStack.addStack()
   returnStack.layoutHorizontally()
@@ -1343,6 +1374,30 @@ function normalizePoetry(poetry) {
 // ==============================
 // 电池
 // ==============================
+
+function getBatteryIcon(level, isCharging) {
+  if (isCharging) return "battery.100.bolt"
+  if (level >= 90) return "battery.100"
+  if (level >= 60) return "battery.75"
+  if (level >= 35) return "battery.50"
+  if (level >= 15) return "battery.25"
+  return "battery.0"
+}
+
+function getBatteryColor(level, isCharging) {
+  if (isCharging) return "#30d158"
+  if (Number.isFinite(level) && level < 15) return "#ff3b30"
+  return "#ffd60a"
+}
+
+function getBatteryChargingState() {
+  try {
+    return Device.isCharging()
+  } catch (error) {
+    log(`充电状态获取失败：${error}`)
+    return false
+  }
+}
 
 function getBatteryLevel() {
   const level = Device.batteryLevel()
