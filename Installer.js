@@ -2,10 +2,10 @@
 // 仅用于开发和测试阶段。发行稳定后可直接复制 src/widget.js 使用。
 
 const CONFIG = {
-  version: "1.1.1",
+  version: "1.1.2",
   manifestUrl: "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/manifest.json",
   fallbackManifest: {
-    version: "1.1.1",
+    version: "1.1.2",
     changelogUrl: "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/CHANGELOG.md",
     resources: [
       {

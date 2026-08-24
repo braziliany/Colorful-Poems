@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.1.2 · Unreleased · Maintenance
+
+- 新增统一的 Scriptable FileManager 持久化缓存层。
+- 彩云天气、预警、农历和诗词独立保存 last known good data。
+- 网络或 API 异常时使用缓存，并保留真实 successfulFetchedAt。
+- 右下角区分“更新于”与“缓存”，不再显示组件渲染时间。
+- 删除电池 SF Symbol、百分比、颜色逻辑、日志和测试死代码。
+- 保持 Midnight Theme、中号双栏、天气 API 与功能结构不变。
+
 ## 1.1.1 · 2026-08-01 · Stable
 
 - 发布 Midnight 深蓝紫玻璃主题并保留黄色强调色。

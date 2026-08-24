@@ -4,7 +4,7 @@
 
 /**
  * 日历 · 天气 · 诗词小组件
- * v1.1.1 · Official Warning Colors + Battery Hierarchy
+ * v1.1.2 · Offline Cache & UI Cleanup
  *
  * 主要修复：
  * 1. 使用 SFSymbol.named() 返回真正的 Image，移除浏览器 document / Font Awesome 代码
@@ -114,11 +114,10 @@ const lowTemperatureColor = new Color("#58a6ff")
 // ==============================
 
 const currentDate = new Date()
+const widgetRenderedAt = currentDate
 const year = currentDate.getFullYear()
 const month = currentDate.getMonth() + 1
 const day = currentDate.getDate()
-const hour = currentDate.getHours()
-const minute = currentDate.getMinutes()
 
 const filename = `${Script.name()}.jpg`
 const files = FileManager.local()
@@ -126,6 +125,11 @@ const path = files.joinPath(files.documentsDirectory(), filename)
 const poetryTokenPath = files.joinPath(
   files.documentsDirectory(),
   `${Script.name()}-jinrishici-token.txt`
+)
+const cacheManager = createCacheManager(
+  files,
+  files.documentsDirectory(),
+  Script.name()
 )
 const widget = new ListWidget()
 
@@ -138,12 +142,6 @@ const lunarInfo = await getLunar()
 const poetry = await getPoetry()
 const showSchedules = await getSchedules()
 const showReminders = await getReminders()
-const batteryStr = getBatteryLevel()
-const batteryLevel = Number.parseInt(batteryStr, 10)
-const batteryIsCharging = getBatteryChargingState()
-const batteryColor = new Color(
-  getBatteryColor(batteryLevel, batteryIsCharging)
-)
 
 // ==============================
 // 小组件布局
@@ -467,33 +465,11 @@ if (weatherControl.SUNRISE_SUNSET) {
 
 if (weatherControl.UPDATE_TIME) {
   rightStack.addSpacer(2)
-  const updateTimeStack = rightStack.addStack()
-  updateTimeStack.layoutHorizontally()
-  updateTimeStack.centerAlignContent()
-  addStyleImg(
-    updateTimeStack,
-    0,
-    getSFIco(getBatteryIcon(batteryLevel, batteryIsCharging)),
-    12,
-    7,
-    batteryColor
-  )
-  updateTimeStack.addSpacer(2)
+  const updateTimeStack = alignRightStack(rightStack)
   addStyleText(
     updateTimeStack,
     0,
-    batteryStr,
-    1,
-    Font.systemFont(8),
-    batteryColor,
-    0,
-    0.8
-  )
-  updateTimeStack.addSpacer()
-  addStyleText(
-    updateTimeStack,
-    0,
-    `上次更新 → ${pad2(hour)}:${pad2(minute)}`,
+    getWeatherStatusText(weatherInfo),
     1,
     Font.systemFont(8),
     new Color("#ffffff", 0.8)
@@ -996,83 +972,103 @@ async function getWeather() {
     sunset: "--:--"
   }
 
-  try {
-    const location = await getLocation()
+  return await loadLastKnownGood(
+    cacheManager,
+    "weather",
+    async () => {
+      const location = await getLocation()
 
-    if (!isValidCoordinate(location.latitude, location.longitude)) {
-      throw new Error("没有可用的经纬度，请开启定位权限或填写默认位置")
-    }
+      if (!isValidCoordinate(location.latitude, location.longitude)) {
+        throw new Error("没有可用的经纬度，请开启定位权限或填写默认位置")
+      }
 
-    debugLog(
-      `定位信息：${location.locality || "未知城市"}·${location.subLocality || "未知地区"}`
-    )
+      debugLog(
+        `定位信息：${location.locality || "未知城市"}·${location.subLocality || "未知地区"}`
+      )
 
-    const domain =
-      `https://api.caiyunapp.com/v2.5/${apiKey}/` +
-      `${location.longitude},${location.latitude}/weather.json?alert=true`
+      const domain =
+        `https://api.caiyunapp.com/v2.5/${apiKey}/` +
+        `${location.longitude},${location.latitude}/weather.json?alert=true`
 
-    const weatherJsonData = await getJson(domain)
+      const weatherJsonData = await getJson(domain)
 
-    if (!isPlainObject(weatherJsonData) || weatherJsonData.status !== "ok") {
-      throw new Error(safeText(weatherJsonData?.error, "彩云天气返回异常"))
-    }
+      if (!isPlainObject(weatherJsonData) || weatherJsonData.status !== "ok") {
+        throw new Error(safeText(weatherJsonData?.error, "彩云天气返回异常"))
+      }
 
-    const result = asObject(weatherJsonData.result)
-    const realtime = asObject(result.realtime)
-    const daily = asObject(result.daily)
-    const dailyTemperature = asArray(daily.temperature)
-    const dailyAstro = asArray(daily.astro)
+      const result = asObject(weatherJsonData.result)
+      const realtime = asObject(result.realtime)
+      const daily = asObject(result.daily)
+      const dailyTemperature = asArray(daily.temperature)
+      const dailyAstro = asArray(daily.astro)
 
-    const alertContent = asObject(result.alert).content
-    let alertWeatherTitle
+      const alertContent = asObject(result.alert).content
+      let alertWeatherTitle
 
-    if (Array.isArray(alertContent) && alertContent.length > 0) {
-      alertWeatherTitle = safeText(asObject(alertContent[0]).title, undefined)
-    } else if (isPlainObject(alertContent)) {
-      alertWeatherTitle = safeText(alertContent.title, undefined)
-    }
+      if (Array.isArray(alertContent) && alertContent.length > 0) {
+        alertWeatherTitle = safeText(asObject(alertContent[0]).title, undefined)
+      } else if (isPlainObject(alertContent)) {
+        alertWeatherTitle = safeText(alertContent.title, undefined)
+      }
 
-    const temperatureData = asObject(dailyTemperature[0])
-    const astro = asObject(dailyAstro[0])
-    const weather = safeText(realtime.skycon, "")
-    const humidity = safeNumber(realtime.humidity)
-    const aqi = safeNumber(asObject(asObject(realtime.air_quality).aqi).chn)
-    const realtimeLifeIndex = asObject(realtime.life_index)
-    const dailyLifeIndex = asObject(daily.life_index)
-    const dailyComfort = asArray(asObject(dailyLifeIndex).comfort)
-    const dailyUltraviolet = asArray(asObject(dailyLifeIndex).ultraviolet)
-    const comfort =
-      safeText(asObject(realtimeLifeIndex.comfort).desc, "") ||
-      safeText(asObject(dailyComfort[0]).desc, "--")
-    const ultraviolet =
-      safeText(asObject(realtimeLifeIndex.ultraviolet).desc, "") ||
-      safeText(asObject(dailyUltraviolet[0]).desc, "--")
+      const temperatureData = asObject(dailyTemperature[0])
+      const astro = asObject(dailyAstro[0])
+      const weather = safeText(realtime.skycon, "")
+      const humidity = safeNumber(realtime.humidity)
+      const aqi = safeNumber(asObject(asObject(realtime.air_quality).aqi).chn)
+      const realtimeLifeIndex = asObject(realtime.life_index)
+      const dailyLifeIndex = asObject(daily.life_index)
+      const dailyComfort = asArray(asObject(dailyLifeIndex).comfort)
+      const dailyUltraviolet = asArray(asObject(dailyLifeIndex).ultraviolet)
+      const comfort =
+        safeText(asObject(realtimeLifeIndex.comfort).desc, "") ||
+        safeText(asObject(dailyComfort[0]).desc, "--")
+      const ultraviolet =
+        safeText(asObject(realtimeLifeIndex.ultraviolet).desc, "") ||
+        safeText(asObject(dailyUltraviolet[0]).desc, "--")
 
-    return {
-      alertWeatherTitle,
-      minTemperature: safeRound(temperatureData.min, "--"),
-      maxTemperature: safeRound(temperatureData.max, "--"),
-      bodyFeelingTemperature: safeRound(
-        realtime.apparent_temperature ?? realtime.temperature,
-        "--"
-      ),
-      weatherIco: weatherIcos[weather] || weatherIcos.CLOUDY,
-      weatherDesc: safeText(result.forecast_keypoint, "暂无天气预报"),
-      humidity: Number.isFinite(humidity)
-        ? `${Math.round(humidity * 100)}%`
-        : "--",
-      comfort,
-      ultraviolet,
-      aqiInfo: Number.isFinite(aqi) ? airQuality(aqi) : "--",
-      sunrise: safeText(asObject(astro.sunrise).time, "--:--"),
-      sunset: safeText(asObject(astro.sunset).time, "--:--")
-    }
-  } catch (error) {
-    log(`天气获取失败：${error}`)
-    return fallback
-  }
+      const normalized = {
+        alertWeatherTitle,
+        minTemperature: safeRound(temperatureData.min, "--"),
+        maxTemperature: safeRound(temperatureData.max, "--"),
+        bodyFeelingTemperature: safeRound(
+          realtime.apparent_temperature ?? realtime.temperature,
+          "--"
+        ),
+        weatherIco: weatherIcos[weather] || weatherIcos.CLOUDY,
+        weatherDesc: safeText(result.forecast_keypoint, "暂无天气预报"),
+        humidity: Number.isFinite(humidity)
+          ? `${Math.round(humidity * 100)}%`
+          : "--",
+        comfort,
+        ultraviolet,
+        aqiInfo: Number.isFinite(aqi) ? airQuality(aqi) : "--",
+        sunrise: safeText(asObject(astro.sunrise).time, "--:--"),
+        sunset: safeText(asObject(astro.sunset).time, "--:--")
+      }
+
+      if (!isValidWeatherData(normalized)) {
+        throw new Error("彩云天气必要字段无效")
+      }
+
+      return normalized
+    },
+    isValidWeatherData,
+    fallback,
+    error => log(`天气获取失败：${error}`)
+  )
 }
 
+function isValidWeatherData(value) {
+  if (!isPlainObject(value)) return false
+  return (
+    safeText(value.weatherIco, "").length > 0 &&
+    safeText(value.weatherDesc, "").length > 0 &&
+    value.bodyFeelingTemperature !== "--" &&
+    value.bodyFeelingTemperature !== undefined &&
+    value.bodyFeelingTemperature !== null
+  )
+}
 async function getLocation() {
   if (!lockLocation) {
     try {
@@ -1242,30 +1238,42 @@ async function getJson(url) {
 }
 
 async function getLunar() {
-  try {
-    const request = new Request("https://www.iamwawa.cn/home/nongli/ajax")
-    request.method = "POST"
-    request.headers = {
-      Accept: "application/json"
-    }
-    request.timeoutInterval = 15
-    request.addParameterToMultipart("type", "solar")
-    request.addParameterToMultipart("year", String(year))
-    request.addParameterToMultipart("month", String(month))
-    request.addParameterToMultipart("day", String(day))
-    const response = await request.loadJSON()
+  return await loadLastKnownGood(
+    cacheManager,
+    "lunar",
+    async () => {
+      const request = new Request("https://www.iamwawa.cn/home/nongli/ajax")
+      request.method = "POST"
+      request.headers = {
+        Accept: "application/json"
+      }
+      request.timeoutInterval = 15
+      request.addParameterToMultipart("type", "solar")
+      request.addParameterToMultipart("year", String(year))
+      request.addParameterToMultipart("month", String(month))
+      request.addParameterToMultipart("day", String(day))
+      const response = await request.loadJSON()
 
-    if (!isPlainObject(response) || response.status !== 1) {
-      throw new Error(safeText(response?.info, "农历接口返回异常"))
-    }
+      if (!isValidLunarData(response)) {
+        throw new Error(safeText(response?.info, "农历接口返回异常"))
+      }
 
-    return response
-  } catch (error) {
-    log(`农历获取失败：${error}`)
-    return null
-  }
+      return response
+    },
+    isValidLunarData,
+    null,
+    error => log(`农历获取失败：${error}`)
+  )
 }
 
+function isValidLunarData(value) {
+  if (!isPlainObject(value) || value.status !== 1) return false
+  const data = asObject(value.data)
+  return (
+    safeText(data.lunar_date, "").length > 0 ||
+    safeText(data.lunar, "").length > 0
+  )
+}
 function getLunarText(lunarInfo) {
   const data = asObject(asObject(lunarInfo).data)
   const lunarDate = safeText(data.lunar_date, "")
@@ -1287,35 +1295,44 @@ function getLunarText(lunarInfo) {
 }
 
 async function getPoetry() {
-  try {
-    let token = await getPoetryToken()
-    let response = await requestPoetry(token)
+  return await loadLastKnownGood(
+    cacheManager,
+    "poetry",
+    async () => {
+      let token = await getPoetryToken()
+      let response = await requestPoetry(token)
 
-    // Token 被服务端判定无效时刷新一次，避免永久停留在兜底内容。
-    const poetryErrorCode = Number(asObject(response).errCode)
-    if (
-      asObject(response).status !== "success" &&
-      (poetryErrorCode === 2002 || poetryErrorCode === 2004)
-    ) {
-      token = await getPoetryToken(true)
-      response = await requestPoetry(token)
-    }
+      const poetryErrorCode = Number(asObject(response).errCode)
+      if (
+        asObject(response).status !== "success" &&
+        (poetryErrorCode === 2002 || poetryErrorCode === 2004)
+      ) {
+        token = await getPoetryToken(true)
+        response = await requestPoetry(token)
+      }
 
-    if (
-      !isPlainObject(response) ||
-      response.status !== "success" ||
-      !isPlainObject(response.data)
-    ) {
-      throw new Error("诗词接口返回异常")
-    }
+      if (!isValidPoetryData(response)) {
+        throw new Error("诗词接口返回异常")
+      }
 
-    return response
-  } catch (error) {
-    log(`诗词获取失败：${error}`)
-    return null
-  }
+      return response
+    },
+    isValidPoetryData,
+    null,
+    error => log(`诗词获取失败：${error}`)
+  )
 }
 
+function isValidPoetryData(value) {
+  const data = asObject(asObject(value).data)
+  const origin = asObject(data.origin)
+  return (
+    asObject(value).status === "success" &&
+    safeText(data.content, "").length > 0 &&
+    safeText(origin.dynasty, "").length > 0 &&
+    safeText(origin.author, "").length > 0
+  )
+}
 async function getPoetryToken(forceRefresh = false) {
   if (!forceRefresh && files.fileExists(poetryTokenPath)) {
     try {
@@ -1375,45 +1392,110 @@ function normalizePoetry(poetry) {
 }
 
 // ==============================
-// 电池
+// 持久化缓存
 // ==============================
 
-function getBatteryIcon(level, isCharging) {
-  if (isCharging) return "battery.100.bolt"
-  if (level >= 90) return "battery.100"
-  if (level >= 60) return "battery.75"
-  if (level >= 35) return "battery.50"
-  if (level >= 15) return "battery.25"
-  return "battery.0"
+function createCacheManager(fileManager, baseDirectory, scriptName) {
+  const schemaVersion = 1
+  const safeScriptName = String(scriptName || "widget").replace(/[^\w.-]+/g, "-")
+
+  function cachePath(key) {
+    const safeKey = String(key || "data").replace(/[^\w.-]+/g, "-")
+    return fileManager.joinPath(
+      baseDirectory,
+      `${safeScriptName}-cache-v${schemaVersion}-${safeKey}.json`
+    )
+  }
+
+  return {
+    read(key, validator) {
+      const targetPath = cachePath(key)
+      try {
+        if (!fileManager.fileExists(targetPath)) return null
+        const parsed = JSON.parse(fileManager.readString(targetPath))
+        if (
+          !parsed ||
+          parsed.schemaVersion !== schemaVersion ||
+          parsed.key !== key ||
+          typeof parsed.successfulFetchedAt !== "string" ||
+          !Number.isFinite(new Date(parsed.successfulFetchedAt).getTime()) ||
+          typeof validator !== "function" ||
+          !validator(parsed.data)
+        ) {
+          return null
+        }
+        return {
+          data: parsed.data,
+          successfulFetchedAt: parsed.successfulFetchedAt
+        }
+      } catch (error) {
+        debugLog(`缓存读取失败（${key}）：${error}`)
+        return null
+      }
+    },
+
+    write(key, data, successfulFetchedAt) {
+      const payload = {
+        schemaVersion,
+        key,
+        successfulFetchedAt,
+        data
+      }
+      fileManager.writeString(cachePath(key), JSON.stringify(payload))
+    }
+  }
 }
 
-function getBatteryColor(level, isCharging) {
-  if (isCharging) return "#30d158"
-  if (Number.isFinite(level) && level < 15) return "#ff453a"
-  return "#afa6cc"
-}
-
-function getBatteryChargingState() {
+async function loadLastKnownGood(
+  manager,
+  cacheKey,
+  fetchRemote,
+  validator,
+  fallback,
+  onError = () => {},
+  nowProvider = () => new Date()
+) {
   try {
-    return Device.isCharging()
+    const data = await fetchRemote()
+    if (!validator(data)) throw new Error(`${cacheKey} 数据校验失败`)
+    const successfulFetchedAt = nowProvider().toISOString()
+    try {
+      manager.write(cacheKey, data, successfulFetchedAt)
+    } catch (cacheWriteError) {
+      debugLog("缓存写入失败（" + cacheKey + "）：" + cacheWriteError)
+    }
+    return withDataSource(data, "network", successfulFetchedAt)
   } catch (error) {
-    log(`充电状态获取失败：${error}`)
-    return false
+    onError(error)
+    const cached = manager.read(cacheKey, validator)
+    if (cached) {
+      return withDataSource(cached.data, "cache", cached.successfulFetchedAt)
+    }
+    return withDataSource(fallback, "fallback", null)
   }
 }
 
-function getBatteryLevel() {
-  const level = Device.batteryLevel()
-
-  if (!Number.isFinite(level) || level < 0) {
-    return "--%"
-  }
-
-  const batteryAscii = `${Math.round(level * 100)}%`
-  debugLog(`电池==>${batteryAscii}`)
-  return batteryAscii
+function withDataSource(data, source, successfulFetchedAt) {
+  if (data === null || data === undefined || !isPlainObject(data)) return data
+  return Object.assign({}, data, {
+    _source: source,
+    _successfulFetchedAt: successfulFetchedAt,
+    _widgetRenderedAt: widgetRenderedAt.toISOString()
+  })
 }
 
+function getWeatherStatusText(weatherData) {
+  const source = safeText(asObject(weatherData)._source, "fallback")
+  const fetchedAt = safeText(asObject(weatherData)._successfulFetchedAt, "")
+  const fetchedDate = fetchedAt ? new Date(fetchedAt) : null
+  const timeText = fetchedDate && Number.isFinite(fetchedDate.getTime())
+    ? `${pad2(fetchedDate.getHours())}:${pad2(fetchedDate.getMinutes())}`
+    : ""
+
+  if (source === "cache" && timeText) return `缓存 · ${timeText}`
+  if (source === "network" && timeText) return `更新于 ${timeText}`
+  return "暂无天气数据"
+}
 function debugLog(message) {
   if (!DEBUG) return
   log(String(message ?? ""))
