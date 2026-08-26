@@ -9,6 +9,18 @@
 
 当前维护开发版本：v1.1.2（等待真机验证）
 
+### v1.1.2 RC 真机测试入口（临时）
+
+在 v1.1.2 真机验收完成前，可将开发分支中的
+[`Installer-RC.js`](https://raw.githubusercontent.com/braziliany/Colorful-Poems/codex/v1.1.2-offline-cache/Installer-RC.js)
+完整复制到 iPhone Scriptable 新脚本并运行。
+
+- 测试安装器和组件只从 `codex/v1.1.2-offline-cache` 下载。
+- 安装目标固定为独立脚本 `彩云诗词桌面天气 RC`。
+- 不读取或覆盖现有 v1.1.1 Stable 脚本。
+- 彩云天气 Token 通过安全输入框配置，只写入本机 RC 副本。
+- 这是临时验收入口，不代表 Tag 或正式 Release。
+
 ## 当前功能
 
 - 彩云天气、天气预警和生活指数

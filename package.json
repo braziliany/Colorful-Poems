@@ -3,6 +3,6 @@
   "version": "1.1.2",
   "private": true,
   "scripts": {
-    "test": "node tests/installer.test.js && node tests/cache.test.js && node tests/widget-ui-cleanup.test.js && node tests/release-integrity.test.js"
+    "test": "node tests/installer.test.js && node tests/installer-rc.test.js && node tests/cache.test.js && node tests/widget-ui-cleanup.test.js && node tests/release-integrity.test.js"
   }
 }
