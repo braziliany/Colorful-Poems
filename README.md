@@ -1,25 +1,11 @@
 # 彩云诗词桌面天气
 
-[![Release](https://img.shields.io/github/v/release/braziliany/Colorful-Poems?display_name=tag&sort=semver)](https://github.com/braziliany/Colorful-Poems/releases/tag/v1.1.1)
+[![Release](https://img.shields.io/github/v/release/braziliany/Colorful-Poems?display_name=tag&sort=semver)](https://github.com/braziliany/Colorful-Poems/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 运行在 iOS Scriptable 中的中号桌面小组件，主脚本为 `src/widget.js`。
 
-当前稳定版本：[v1.1.1](https://github.com/braziliany/Colorful-Poems/releases/tag/v1.1.1)
-
-当前维护开发版本：v1.1.2（等待真机验证）
-
-### v1.1.2 RC 真机测试入口（临时）
-
-在 v1.1.2 真机验收完成前，可将开发分支中的
-[`Installer-RC.js`](https://raw.githubusercontent.com/braziliany/Colorful-Poems/codex/v1.1.2-offline-cache/Installer-RC.js)
-完整复制到 iPhone Scriptable 新脚本并运行。
-
-- 测试安装器和组件只从 `codex/v1.1.2-offline-cache` 下载。
-- 安装目标固定为独立脚本 `彩云诗词桌面天气 RC`。
-- 不读取或覆盖现有 v1.1.1 Stable 脚本。
-- 彩云天气 Token 通过安全输入框配置，只写入本机 RC 副本。
-- 这是临时验收入口，不代表 Tag 或正式 Release。
+当前稳定版本：v1.1.2
 
 ## 当前功能
 
@@ -53,9 +39,10 @@
 
 ## v1.1.2 Offline Cache & UI Cleanup
 
-- 彩云天气、天气预警、农历和每日诗词分别保存最后一次成功数据。
-- 断网或接口异常时独立回退缓存，不因单一数据源失败影响其他内容。
-- 右下角显示真实天气成功时间；缓存状态明确显示“缓存”。
+- 新增三个独立缓存域：Weather Cache（天气及天气预警）、Lunar Cache（农历）和 Poetry Cache（每日诗词）。
+- 三个缓存域分别维护 last-known-good data 与 `successfulFetchedAt`；一个数据源失败不会使其他数据源失效。
+- 断网或接口异常时优先显示最后一次成功数据。
+- 右下角正确区分实时数据的“更新于 HH:mm”和缓存数据的“缓存 · HH:mm”。
 - 首次运行无缓存和缓存损坏时继续使用安全 fallback，不会崩溃。
 - 删除低价值电池图标、百分比和全部相关死代码。
 - Midnight Theme、中号双栏和现有数据接口保持不变。
@@ -64,7 +51,7 @@
 
 ### Scriptable Installer（推荐）
 
-将仓库根目录的 `Installer.js` 复制到 Scriptable 后运行：
+Official Scriptable Installer 是推荐安装方式。将仓库根目录的 `Installer.js` 复制到 Scriptable 后运行：
 
 - 首次安装会用隐藏输入框要求填写彩云天气 Token。
 - Token 只会注入本机 iCloud 中的 `Colorful-Poems.js`，不会写回公开仓库。
@@ -81,7 +68,7 @@
 
 ## 容错说明
 
-- 彩云天气、农历和诗词接口失败时优先使用各自最后成功缓存；无缓存时显示兜底文本。
+- Weather（含天气预警）、Lunar 和 Poetry 三个缓存域在各自数据源失败时优先使用最后成功缓存；无缓存时显示兜底文本。
 - 无效 SF Symbol 自动使用备用图标。
 - 背景图片缺失或无法读取时使用配置的纯色背景。
 - 农历优先显示接口的 `lunar_date` 字段，旧格式响应仍可兼容。

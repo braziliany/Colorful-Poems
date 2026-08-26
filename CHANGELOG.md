@@ -1,13 +1,25 @@
 # Changelog
 
-## 1.1.2 · Unreleased · Maintenance
+## 1.1.2 · 2026-08-26 · Maintenance Release
 
-- 新增统一的 Scriptable FileManager 持久化缓存层。
-- 彩云天气、预警、农历和诗词独立保存 last known good data。
-- 网络或 API 异常时使用缓存，并保留真实 successfulFetchedAt。
-- 右下角区分“更新于”与“缓存”，不再显示组件渲染时间。
-- 删除电池 SF Symbol、百分比、颜色逻辑、日志和测试死代码。
+### Added
+
+- 新增 Weather Cache，统一保存天气及天气预警的 last-known-good data。
+- 新增相互独立的 Lunar Cache 与 Poetry Cache。
+- 三个缓存域分别持久化 `successfulFetchedAt`，用于识别最后一次成功数据时间。
+- 新增实时数据与缓存数据的来源、时间状态显示。
+
+### Changed
+
+- 网络或 API 异常时优先使用对应缓存域的最后成功数据，一个数据源失败不影响其他数据源。
+- 右下角明确区分实时数据的“更新于 HH:mm”和缓存数据的“缓存 · HH:mm”。
+- Installer 文案从开发安装器统一为正式 Scriptable Installer。
 - 保持 Midnight Theme、中号双栏、天气 API 与功能结构不变。
+
+### Removed
+
+- 删除电池图标、电池百分比和设备电池 API 调用。
+- 删除电池专用 UI、颜色映射、调试日志、辅助函数和旧测试。
 
 ## 1.1.1 · 2026-08-01 · Stable
 

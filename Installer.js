@@ -1,5 +1,5 @@
-// Colorful Poems 开发安装器
-// 仅用于开发和测试阶段。发行稳定后可直接复制 src/widget.js 使用。
+// Colorful Poems Official Scriptable Installer
+// 推荐用于安装和更新 Colorful Poems 稳定版本。
 
 const CONFIG = {
   version: "1.1.2",
@@ -17,7 +17,7 @@ const CONFIG = {
       {
         scriptName: "Colorful Poems Installer",
         sourceUrl: "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/Installer.js",
-        marker: "Colorful Poems 开发安装器"
+        marker: "Colorful Poems Official Scriptable Installer"
       }
     ]
   }
