@@ -5,7 +5,7 @@
 
 运行在 iOS Scriptable 中的中号桌面小组件，主脚本为 `src/widget.js`。
 
-当前稳定版本：v1.1.2
+当前稳定版本：[v1.1.2](https://github.com/braziliany/Colorful-Poems/releases/tag/v1.1.2)
 
 ## 当前功能
 
