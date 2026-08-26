@@ -31,9 +31,15 @@ Main source file:
 - Daily poetry
 - Calendar events
 - Reminders
-- Battery percentage
 - Photo background
 - Transparent widget background
+
+Starting with v1.1.2, the widget no longer displays device battery information.
+Do not restore battery icons, battery percentages, `Device.batteryLevel()`,
+`Device.isCharging()`, battery color mappings, battery debug logging, or unused
+battery helpers without an explicitly approved product change. The battery UI
+was removed because iOS already provides system-level battery status and the
+widget space is better reserved for its core weather content.
 
 ## 1.4 UI constraints
 

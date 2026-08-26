@@ -1,5 +1,5 @@
 {
-  "version": "1.1.1",
+  "version": "1.1.2",
   "changelogUrl": "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/CHANGELOG.md",
   "resources": [
     {
@@ -13,7 +13,7 @@
       "scriptName": "Colorful Poems Installer",
       "sourcePath": "Installer.js",
       "sourceUrl": "https://raw.githubusercontent.com/braziliany/Colorful-Poems/main/Installer.js",
-      "marker": "Colorful Poems 开发安装器"
+      "marker": "Colorful Poems Official Scriptable Installer"
     }
   ]
 }

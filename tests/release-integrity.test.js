@@ -26,7 +26,14 @@ assert(widget.includes("const DEBUG = false"));
 assert(!/(?:^|[^A-Za-z])log\s*\(\s*`定位信息：/.test(widget));
 assert(!/(?:^|[^A-Za-z])log\s*\(\s*`电池==>/.test(widget));
 assert(/debugLog\s*\(\s*`定位信息：/.test(widget));
-assert(/debugLog\s*\(\s*`电池==>/.test(widget));
+
+assert(!/getBattery|Device\.(?:batteryLevel|isCharging)|batteryStr|batteryColor/.test(widget));
+assert(widget.includes("const widgetRenderedAt = currentDate"));
+assert(widget.includes("_widgetRenderedAt: widgetRenderedAt.toISOString()"));
+for (const cacheKey of ["weather", "lunar", "poetry"]) {
+  const cachePattern = new RegExp(`loadLastKnownGood\\(\\s*cacheManager,\\s*"${cacheKey}"`);
+  assert(cachePattern.test(widget), cacheKey + " should use independent cache");
+}
 
 for (const rule of ["*.key", "*.token", "config.private.js", ".env"]) {
   assert(gitignore.split(/\r?\n/).includes(rule), `${rule} must be ignored`);

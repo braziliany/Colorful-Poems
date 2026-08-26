@@ -1,18 +1,17 @@
 # 彩云诗词桌面天气
 
-[![Release](https://img.shields.io/github/v/release/braziliany/Colorful-Poems?display_name=tag&sort=semver)](https://github.com/braziliany/Colorful-Poems/releases/tag/v1.1.1)
+[![Release](https://img.shields.io/github/v/release/braziliany/Colorful-Poems?display_name=tag&sort=semver)](https://github.com/braziliany/Colorful-Poems/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 运行在 iOS Scriptable 中的中号桌面小组件，主脚本为 `src/widget.js`。
 
-当前稳定版本：[v1.1.1](https://github.com/braziliany/Colorful-Poems/releases/tag/v1.1.1)
+当前稳定版本：v1.1.2
 
 ## 当前功能
 
 - 彩云天气、天气预警和生活指数
 - 农历与每日诗词
 - 日历事件与提醒事项数据
-- 电池电量
 - 相册背景与透明背景
 
 ## v1.1.0 视觉主题
@@ -38,11 +37,21 @@
 - 低电量和充电状态继续使用红色、绿色提示。
 - 电量来源、充电判断、双栏结构和天气布局保持不变。
 
+## v1.1.2 Offline Cache & UI Cleanup
+
+- 新增三个独立缓存域：Weather Cache（天气及天气预警）、Lunar Cache（农历）和 Poetry Cache（每日诗词）。
+- 三个缓存域分别维护 last-known-good data 与 `successfulFetchedAt`；一个数据源失败不会使其他数据源失效。
+- 断网或接口异常时优先显示最后一次成功数据。
+- 右下角正确区分实时数据的“更新于 HH:mm”和缓存数据的“缓存 · HH:mm”。
+- 首次运行无缓存和缓存损坏时继续使用安全 fallback，不会崩溃。
+- 删除低价值电池图标、百分比和全部相关死代码。
+- Midnight Theme、中号双栏和现有数据接口保持不变。
+
 ## 安装
 
 ### Scriptable Installer（推荐）
 
-将仓库根目录的 `Installer.js` 复制到 Scriptable 后运行：
+Official Scriptable Installer 是推荐安装方式。将仓库根目录的 `Installer.js` 复制到 Scriptable 后运行：
 
 - 首次安装会用隐藏输入框要求填写彩云天气 Token。
 - Token 只会注入本机 iCloud 中的 `Colorful-Poems.js`，不会写回公开仓库。
@@ -59,7 +68,7 @@
 
 ## 容错说明
 
-- 彩云天气、农历和诗词接口失败时显示兜底文本。
+- Weather（含天气预警）、Lunar 和 Poetry 三个缓存域在各自数据源失败时优先使用最后成功缓存；无缓存时显示兜底文本。
 - 无效 SF Symbol 自动使用备用图标。
 - 背景图片缺失或无法读取时使用配置的纯色背景。
 - 农历优先显示接口的 `lunar_date` 字段，旧格式响应仍可兼容。
